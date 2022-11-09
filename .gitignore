@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# data folders
+/uncombined-training-data
+
+*.tsv
+*.csv
