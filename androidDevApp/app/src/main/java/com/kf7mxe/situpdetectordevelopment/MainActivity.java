@@ -1,11 +1,6 @@
-package com.kf7mxe.sit_updatacollector;
+package com.kf7mxe.situpdetectordevelopment;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.app.Activity;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -15,8 +10,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -36,8 +31,11 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends WearableActivity  implements SensorEventListener {
     public SensorManager manager;
+
+    private Vibrator vibrator;
+
     private Button didSitUp;
     private TextView testTextView;
     private Sensor mGyroscope;
@@ -49,9 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean record;
     private boolean dataUpdated;
 
-    private Vibrator vibrator;
-
-
     private Long lastTimeStamp;
     private Instant instant;
     Handler handler = new Handler();
@@ -60,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ArrayList<String> singleSitUpData;
     private ArrayList<ArrayList> allSitUpData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,12 +74,10 @@ public class MainActivity extends AppCompatActivity {
         testTextView = (TextView) findViewById(R.id.testDataAccess);
         mGyroscope = manager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
-
         //loadFile();
 
-        manager.registerListener(gyroscopeListener,mGyroscope,SensorManager.SENSOR_DELAY_FASTEST);
 
-//        manager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+        manager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
 
         didSitUp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,13 +94,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         // Enables Always-on
-        //setAmbientEnabled();
+        setAmbientEnabled();
+
+
+
     }
 
     protected void onResume(){
         super.onResume();
-        manager.registerListener(gyroscopeListener, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST );
-
+        manager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_FASTEST );
+//        handler.postDelayed(runnable = new Runnable() {
+//            public void run() {
+//                handler.postDelayed(runnable,delay);
+//                testTextView.setText(Integer.toString(allSitUpData.size()));
+//                Log.e("debug","in here");
+//                if(record){
+//                    JSONObject temp = new JSONObject();
+//                    try {
+//                        temp.put("x",axisXString);
+//                        temp.put("y",axisYString);
+//                        temp.put("z",axisYString);
+//                    } catch (Exception e){
+//                        Log.e("debug",e.toString());
+//                        Toast.makeText(MainActivity.this,"error with creating json object",Toast.LENGTH_SHORT);
+//                    }
+//                    singleSitUpData.add(temp.toString());
+//                    dataUpdated = true;
+//                } else if(dataUpdated == true){
+//                    //save
+//                    ArrayList<String> copyOfSingleSitUpData = (ArrayList<String>) singleSitUpData.clone();
+//                    allSitUpData.add(copyOfSingleSitUpData);
+//                    singleSitUpData.clear();
+//                    dataUpdated = false;
+//                    saveJsonVector();
+//                } else{
+//
+//                }
+//
+//            }
+//        },delay);
     }
 
     public void vibrate(){
@@ -132,6 +158,60 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    public void onSensorChanged(SensorEvent event) {
+        // This time step's delta rotation to be multiplied by the current rotation
+        // after computing it from the gyro sample data.
+            //final float dT = (event.timestamp - timestamp) * NS2S;
+            // Axis of the rotation sample, not normalized yet.
+        if(lastTimeStamp ==null){
+            lastTimeStamp = event.timestamp;
+        }
+
+            float axisX = event.values[0];
+            float axisY = event.values[1];
+            float axisZ = event.values[2];
+            axisXString = Float.toString(axisX);
+            axisYString = Float.toString(axisY);
+            axisZString = Float.toString(axisZ);
+            Log.e("test",Boolean.toString(record));
+
+
+                testTextView.setText(Integer.toString(allSitUpData.size()));
+
+        if(record){
+            JSONObject temp = new JSONObject();
+            try {
+                temp.put("x",axisXString);
+                temp.put("y",axisYString);
+                temp.put("z",axisYString);
+            } catch (Exception e){
+                Log.e("debug",e.toString());
+                Toast.makeText(MainActivity.this,"error with creating json object",Toast.LENGTH_SHORT);
+            }
+            singleSitUpData.add(temp.toString());
+            dataUpdated = true;
+        } else if(dataUpdated == true){
+            //save
+            ArrayList<String> copyOfSingleSitUpData = (ArrayList<String>) singleSitUpData.clone();
+            allSitUpData.add(copyOfSingleSitUpData);
+            singleSitUpData.clear();
+            dataUpdated = false;
+            saveJsonVector();
+        } else{
+
+        }
+
+
+
+
+
+
+            // Calculate the angular speed of the sample
+            // User code should concatenate the delta rotation we computed with the current
+            // rotation in order to get the updated rotation.
+            // rotationCurrent = rotationCurrent * deltaRotationMatrix;
+    }
 
 
     public void loadFile(){
@@ -165,87 +245,9 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onPause() {
         super.onPause();
-        manager.unregisterListener(gyroscopeListener);
+        manager.unregisterListener(this);
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
-
-
-    public SensorEventListener gyroscopeListener = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent event) {
-            // This time step's delta rotation to be multiplied by the current rotation
-            // after computing it from the gyro sample data.
-            //final float dT = (event.timestamp - timestamp) * NS2S;
-            // Axis of the rotation sample, not normalized yet.
-            if(lastTimeStamp ==null){
-                lastTimeStamp = event.timestamp;
-            }
-
-            float axisX = event.values[0];
-            float axisY = event.values[1];
-            float axisZ = event.values[2];
-            axisXString = Float.toString(axisX);
-            axisYString = Float.toString(axisY);
-            axisZString = Float.toString(axisZ);
-            Log.e("test",Boolean.toString(record));
-
-
-            testTextView.setText(Integer.toString(allSitUpData.size()));
-
-            if(record){
-                JSONObject temp = new JSONObject();
-                try {
-                    temp.put("x",axisXString);
-                    temp.put("y",axisYString);
-                    temp.put("z",axisYString);
-                } catch (Exception e){
-                    Log.e("debug",e.toString());
-                    Toast.makeText(MainActivity.this,"error with creating json object",Toast.LENGTH_SHORT);
-                }
-                singleSitUpData.add(temp.toString());
-                dataUpdated = true;
-            } else if(dataUpdated == true){
-                //save
-                ArrayList<String> copyOfSingleSitUpData = (ArrayList<String>) singleSitUpData.clone();
-                allSitUpData.add(copyOfSingleSitUpData);
-                singleSitUpData.clear();
-                dataUpdated = false;
-                saveJsonVector();
-            } else{
-
-            }
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-
-        }
-    };
-
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        int action = event.getAction();
-        int keyCode = event.getKeyCode();
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (action == KeyEvent.ACTION_DOWN) {
-                    if(record==false) {
-                        record = true;
-                        didSitUp.setText("Stop");
-                        vibrate();
-                    } else {
-                        record = false;
-                        didSitUp.setText("Start");
-                        vibrate();
-                    }
-                }
-                return true;
-            default:
-                return super.dispatchKeyEvent(event);
-        }
-    }
-
-
 }

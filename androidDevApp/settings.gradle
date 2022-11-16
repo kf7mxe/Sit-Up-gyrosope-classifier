@@ -1,0 +1,3 @@
+rootProject.name='Sit Up Detector Development'
+include ':app'
+include ':sit-updatacollector'
