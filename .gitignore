@@ -130,7 +130,7 @@ dmypy.json
 
 
 # data folders
-/uncombined-training-data
+# /uncombined-training-data
 
 *.tsv
 *.csv
