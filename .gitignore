@@ -132,7 +132,7 @@ dmypy.json
 # data folders
 # /uncombined-training-data
 
-*.tsv
+# *.tsv
 *.csv
 
 # Built application files
