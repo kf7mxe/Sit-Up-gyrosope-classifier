@@ -32,20 +32,11 @@
         android:id="@+id/positiveNegativeSwitch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Postive or Negative"
+        android:checked="true"
+        android:text="Postive"
         app:layout_constraintBottom_toTopOf="@+id/didSitUp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Switch
-        android:id="@+id/switch2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Switch"
-        app:layout_constraintBottom_toTopOf="@+id/didSitUp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/positiveNegativeSwitch" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

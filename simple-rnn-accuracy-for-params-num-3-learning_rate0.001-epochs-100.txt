@@ -1,0 +1,8 @@
+Accuracy: 49.6032%num_layers: 3learning_rate: 0.001num_epochs: 100hidden_size: 12input_size: 3num_classes: 2optimizer: Adam (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    eps: 1e-08
+    lr: 0.001
+    weight_decay: 0
+)

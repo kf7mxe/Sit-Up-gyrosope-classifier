@@ -20,6 +20,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,8 +47,12 @@ public class MainActivity extends AppCompatActivity {
     private String axisYString;
     private String axisZString;
 
+    private Switch positiveNegativeSwitch;
+
     private boolean record;
     private boolean dataUpdated;
+    private boolean savePositive;
+
 
     private Vibrator vibrator;
 
@@ -66,6 +71,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         vibrator = (Vibrator) getSystemService(this.VIBRATOR_SERVICE ) ;
+
+        positiveNegativeSwitch = findViewById(R.id.positiveNegativeSwitch);
+
+        if(positiveNegativeSwitch.isChecked()){
+            savePositive = true;
+        }else{
+            savePositive = false;
+        }
+
+        positiveNegativeSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(positiveNegativeSwitch.isChecked()){
+                    savePositive = true;
+                }else{
+                    savePositive = false;
+                }
+            }
+        });
 
         manager = (SensorManager)getSystemService(SENSOR_SERVICE);
         instant = Instant.now(); // Current moment in UTC.
@@ -121,13 +145,27 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveJsonVector(){
         String allSitUpDataString = allSitUpData.toString();
-        File file = new File(MainActivity.this.getFilesDir(),"sitUpData"+instant.toString()+".json");
+        String dir = "";
+        if (savePositive){
+            dir = "positive";
+        } else {
+            dir = "negative";
+        }
+
+        // create a folder with name positive
+
+        File folder = new File(getFilesDir(), dir);
+        if(!folder.exists()){
+            folder.mkdirs();
+        }
+            File file = new File(folder,"sitUpData"+instant.toString()+".json");
         try {
             FileWriter fileWriter = new FileWriter(file);
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write(allSitUpDataString);
             bufferedWriter.close();
         } catch (IOException e){
+            Log.println(Log.ERROR,"Error",e.toString());
             Toast.makeText(MainActivity.this,"error Saving file",Toast.LENGTH_SHORT);
         }
     }

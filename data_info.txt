@@ -1,4 +1,4 @@
-Max non zero: 749
-Max zero: 658
-Min non zero: 91
-Total rows: 2572
+Max non zero: 2121
+Max zero: 1220
+Min non zero: 901
+Total rows: 1535
